@@ -484,8 +484,13 @@ class Win(QWidget,Ui_Form):
         def simulate_time():
             try:
                 self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
-                endtime = float(self.endtime_line.text())   
-                return endtime
+                endtime = float(self.endtime_line.text())
+                if endtime > 0: 
+                    return endtime
+                else:
+                    self.Reslut_label.setText('模拟时间不应小于0')
+                    self.endtime_line.setText('')
+                    return
             except:
                 self.endtime_line.setText('')
                 self.Reslut_label.setText('检查模拟时间输入！')
@@ -496,13 +501,18 @@ class Win(QWidget,Ui_Form):
             try:
                 peak = simulate_time()
                 intervals = int(self.interval_line.text())
-                if intervals < peak:
-                    self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
-                else:
+                if intervals >= peak:
                     self.interval_line.setText('')
                     self.Reslut_label.setText('交换时间不能大于模拟时间')
                     self.simstartButton.setEnabled(False)
                     return
+                if intervals <= 0:
+                    self.interval_line.setText('')
+                    self.Reslut_label.setText('交换时间不能小于0')
+                    self.simstartButton.setEnabled(False)
+                    return
+                else:
+                   self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
                 return intervals
             except:
                 self.interval_line.setText('')
@@ -512,8 +522,13 @@ class Win(QWidget,Ui_Form):
         
         def dt_read():
             try:
-                self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
                 dt_use = float(self.dt_line.text())
+                if 0< dt_use < 0.1:
+                    self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                else:
+                    self.Reslut_label.setText('推进步长范围应在(0~0.1)')
+                    self.dt_line.setText('')
+                    return
                 self.simstartButton.setEnabled(True)
                 return dt_use
             except:
@@ -844,6 +859,8 @@ class Win(QWidget,Ui_Form):
                         ModelicaName = MFName[0]
                         (time_a, value_a) = r.values(ModelicaName)
                         dict_MFpassValue[toFluentName] = value_a[-1]
+                    
+                    return
 
                     # (time_1,SupplyV) = r.values('SupplyAir.m_flow')
                     # (time_2,SupplyT) = r.values('SupplyAir.T_in')
@@ -851,20 +868,20 @@ class Win(QWidget,Ui_Form):
                     # dict_MFpassValue['supply_velocity'] = SupplyV[-1]/(1.2*0.1)
 
                     #以下代码传出需要进行CFD联合计算的房间名，仅需要执行一次  
-                    if smash_signal[0] == 1:
-                        try:
-                            room = r.varNames('CFD_')
-                            RoomName = []
-                            for i in range(len(room)):
-                                rName = room[i].split('_')
-                                RoomName.append(rName[1])
-                            RoomName = list(set(RoomName))
-                            self.r1_checkBox.setText(RoomName[0])
-                            self.r2_checkBox_2.setText(RoomName[1])
-                        except:
-                            self.multi_result_path_label.setText('VarName set Error, Please Check .mo')
-                    else:
-                        return
+                    # if smash_signal[0] == 1:
+                    #     try:
+                    #         room = r.varNames('CFD_')
+                    #         RoomName = []
+                    #         for i in range(len(room)):
+                    #             rName = room[i].split('_')
+                    #             RoomName.append(rName[1])
+                    #         RoomName = list(set(RoomName))
+                    #         # self.r1_checkBox.setText(RoomName[0])
+                    #         # self.r2_checkBox_2.setText(RoomName[1])
+                    #     except:
+                    #         self.multi_result_path_label.setText('VarName set Error, Please Check .mo')
+                    # else:
+                    #     return
                 
             else:
                 dymola_setName = dict_dymola_setName[1]
