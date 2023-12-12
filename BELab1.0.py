@@ -82,7 +82,7 @@ class Win(QWidget,Ui_Form):
         #写一个字典型把exd导进去
         EXD = {'MF':[], 'FM':[]}
 
-        use_file = '.fmu'
+        #use_file = '.fmu'
 
         self.cal_progressBar.setRange(0,100)
         
@@ -103,7 +103,7 @@ class Win(QWidget,Ui_Form):
                 root = tk.Tk()
                 root.withdraw()
                 udf = ''
-                udf_name = filedialog.askopenfilename(multiple = True)
+                udf_name = filedialog.askopenfilename(multiple = True, filetypes=(("udf files","*.c"),))
                 for u in udf_name:
                     udf = udf+u.ljust(len(u)+1)
                 self.udf_input_line_4.setText(udf)
@@ -118,7 +118,7 @@ class Win(QWidget,Ui_Form):
             try:
                 root = tk.Tk()
                 root.withdraw()
-                Filepath = filedialog.askopenfilename()
+                Filepath = filedialog.askopenfilename(filetypes=(("case files","*.cas"),))
                 self.cas_input_line_2.setText(Filepath)
                 scheme.execScheme(f'(read-case "{Filepath}")') #直接读取case文件
             except:
@@ -128,7 +128,7 @@ class Win(QWidget,Ui_Form):
             try:
                 root = tk.Tk()
                 root.withdraw()
-                Filepath = filedialog.askopenfilename()
+                Filepath = filedialog.askopenfilename(filetypes=(("mesh files","*.msh"),))
                 self.mesh_input_line.setText(Filepath)
                 scheme.execScheme(f'(read-case "{Filepath}")')
 
@@ -232,10 +232,10 @@ class Win(QWidget,Ui_Form):
                         scheme.doMenuCommand("/define/boundary/wall "+BoundaryName+' 0 no 0 no yes temperature no '+ BoundaryT)
                 
             except:
-                self.set_status_label.setText('Set Error')
+                self.set_status_label.setText('设置错误！')
                 return
             finally:
-                self.set_status_label.setText('Set Down')
+                self.set_status_label.setText('设置完成！')
             return
                 
         def startSimulation_click():
@@ -342,7 +342,7 @@ class Win(QWidget,Ui_Form):
         def dymolaButton_click():
             root = tk.Tk()
             root.withdraw()
-            Filepath = filedialog.askopenfilename()
+            Filepath = filedialog.askopenfilename(filetypes=(("model files","*.mo"),("fmi files","*.fmu")))
             self.mulitzone_line.setText(Filepath)
             
         def RoomT_swich():
@@ -359,11 +359,17 @@ class Win(QWidget,Ui_Form):
         def RoomT_Input_click():
             RoomName = self.Room_select_box.currentText()+'.T'
             RoomT = float(self.Room_T_line.text())
-            if RoomName in dict_dymola_setName[1]:
-                dict_dymola_setValue[1][dict_dymola_setName[1].index(RoomName)] = RoomT
+            if 278.15<= RoomT <=323.15:
+                self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                if RoomName in dict_dymola_setName[1]:
+                    dict_dymola_setValue[1][dict_dymola_setName[1].index(RoomName)] = RoomT
+                else:
+                    dict_dymola_setName[1].append(RoomName)
+                    dict_dymola_setValue[1].append(RoomT)
             else:
-                dict_dymola_setName[1].append(RoomName)
-                dict_dymola_setValue[1].append(RoomT)
+                self.Room_T_line.setText('')
+                self.Reslut_label.setText('参数合法范围T(278.15~323.15)')
+                return
         #用于记录设定参数
         
         def Door_swich():
@@ -394,23 +400,31 @@ class Win(QWidget,Ui_Form):
             leakage = float(self.Door_leakage_line.text())
             cd = float(self.cd_line.text())
             m = float(self.m_line.text())
-            if doorNameleakage in dict_dymola_setName[1]:
-                dict_dymola_setValue[1][dict_dymola_setName[1].index(doorNameleakage)] = leakage
-            else:
-                dict_dymola_setName[1].append(doorNameleakage)
-                dict_dymola_setValue[1].append(leakage)
+            if 0 <= leakage <= 0.5 and 0 <= cd <= 1 and 0 <= m <= 1:
+                self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                if doorNameleakage in dict_dymola_setName[1]:
+                    dict_dymola_setValue[1][dict_dymola_setName[1].index(doorNameleakage)] = leakage
+                else:
+                    dict_dymola_setName[1].append(doorNameleakage)
+                    dict_dymola_setValue[1].append(leakage)
 
-            if doorNamecd in dict_dymola_setName[1]:
-                dict_dymola_setValue[1][dict_dymola_setName[1].index(doorNamecd)] = cd
-            else:
-                dict_dymola_setName[1].append(doorNamecd)
-                dict_dymola_setValue[1].append(cd)
+                if doorNamecd in dict_dymola_setName[1]:
+                    dict_dymola_setValue[1][dict_dymola_setName[1].index(doorNamecd)] = cd
+                else:
+                    dict_dymola_setName[1].append(doorNamecd)
+                    dict_dymola_setValue[1].append(cd)
 
-            if doorNamem in dict_dymola_setName[1]:
-                dict_dymola_setValue[1][dict_dymola_setName[1].index(doorNamem)] = m
+                if doorNamem in dict_dymola_setName[1]:
+                    dict_dymola_setValue[1][dict_dymola_setName[1].index(doorNamem)] = m
+                else:
+                    dict_dymola_setName[1].append(doorNamem)
+                    dict_dymola_setValue[1].append(m)
             else:
-                dict_dymola_setName[1].append(doorNamem)
-                dict_dymola_setValue[1].append(m)
+                self.Door_leakage_line.setText('')
+                self.cd_line.setText('')
+                self.m_line.setText('')
+                self.Reslut_label.setText('参数合法范围L(0~0.5),cd(0~1),m(0~1)')
+                return
 
         def curve_Button_able():
             textG = self.curve_a_line.text().strip()
@@ -450,30 +464,63 @@ class Win(QWidget,Ui_Form):
         def end_button():
             textI = self.endtime_line.text().strip()
             textJ = self.interval_line.text().strip()
+            textH = self.dt_line.text().strip()
             if textI == '':
                 signalI = False
             else:
                 signalI = True
-            if textJ == '':
+            if textJ == '' or textI == '':
                 signalJ = False
             else:
                 signalJ = True
+            if textJ == '' or textI == '' or textH == '':
+                signalH = False
+            else:
+                signalH = True
             self.endtimeButton.setEnabled(signalI)
             self.intervalButton.setEnabled(signalJ)
+            self.dt_button.setEnabled(signalJ)
 
         def simulate_time():
-            endtime = float(self.endtime_line.text())
-            return endtime
+            try:
+                self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                endtime = float(self.endtime_line.text())   
+                return endtime
+            except:
+                self.endtime_line.setText('')
+                self.Reslut_label.setText('检查模拟时间输入！')
+                self.simstartButton.setEnabled(False)
+                return
         
         def interval():
-            intervals = int(self.interval_line.text())
-            self.simstartButton.setEnabled(True)
-            return intervals
+            try:
+                peak = simulate_time()
+                intervals = int(self.interval_line.text())
+                if intervals < peak:
+                    self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                else:
+                    self.interval_line.setText('')
+                    self.Reslut_label.setText('交换时间不能大于模拟时间')
+                    self.simstartButton.setEnabled(False)
+                    return
+                return intervals
+            except:
+                self.interval_line.setText('')
+                self.Reslut_label.setText('检查交换时间输入！')
+                self.simstartButton.setEnabled(False)
+                return
         
         def dt_read():
-            dt_use = float(self.dt_line.text())
-            return dt_use
-            
+            try:
+                self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                dt_use = float(self.dt_line.text())
+                self.simstartButton.setEnabled(True)
+                return dt_use
+            except:
+                self.dt_line.setText('')
+                self.Reslut_label.setText('检查推进步输入！')
+                self.simstartButton.setEnabled(False)
+                return
 
         def EXDconfirmButton():
             textMF = self.MFEXD1.text().strip()
@@ -500,7 +547,7 @@ class Win(QWidget,Ui_Form):
             EXD['MF'] = MF
 
         def FMU_simulate(fmu_file, end_time, communicate_time, set_variable, set_value):
-            self.multi_result_path_label.setText('Start Simu')
+            self.multi_result_path_label.setText('开始模拟')
             Tstart = 0 # The start time.
             Tend = end_time
             
@@ -555,7 +602,7 @@ class Win(QWidget,Ui_Form):
                 t_sol = [Tstart]
                 sol = [model.get_real(vref)]
             except:
-                self.multi_result_path_label.setText('Name Error')
+                self.multi_result_path_label.setText('输入名称错误')
                 return
 
             time = Tstart
@@ -594,7 +641,7 @@ class Win(QWidget,Ui_Form):
                 try:
                     event_ind_new = model.get_event_indicators()
                 except:
-                    self.multi_result_path_label.setText('Step Number Error')
+                    self.multi_result_path_label.setText('推进步错误')
                     return
                 
                 # Inform the model about an accepted step and check for step events
@@ -704,7 +751,7 @@ class Win(QWidget,Ui_Form):
 
             
         def simulateButton_click():#这部分代码应当由dymola.egg更改为FMU
-            if use_file == '.mo':
+            if self.mulitzone_line.text()[-3,-1] == '.mo':
                 try:
                     smash_signal[0] = smash_signal[0] + 1
                     ResultValue = []
@@ -892,6 +939,7 @@ class Win(QWidget,Ui_Form):
 
         self.MFEXDconfirm.setEnabled(False)
         self.FMEXDconfirm.setEnabled(False)
+        self.dt_button.setEnabled(False)
 
         # self.r1_checkBox.setText('')
         # self.r2_checkBox_2.setText('')
@@ -926,8 +974,10 @@ class Win(QWidget,Ui_Form):
         
         self.endtime_line.textChanged.connect(end_button)
         self.interval_line.textChanged.connect(end_button)
+        self.dt_line.textChanged.connect(end_button)
         self.endtimeButton.pressed.connect(simulate_time)
         self.intervalButton.pressed.connect(interval)
+        self.dt_button.pressed.connect(dt_read)
 
         self.simstartButton.pressed.connect(simulateButton_click)
 
@@ -1004,7 +1054,7 @@ if __name__=='__main__':
 
     # 启动Fluent软件,使用-hidden可以隐藏fluent的GUI界面
     if fluent_exist:
-        fluentProcess = subprocess.Popen(f'"{fluentExe}" 3ddp -aas', shell=True, cwd=str(workPath))#-hidden
+        fluentProcess = subprocess.Popen(f'"{fluentExe}" 3ddp -aas -hidden', shell=True, cwd=str(workPath))#-hidden
     else:
         error = 'no right fluent verison exist on this machine'
         starterror =  open(os.path.join(workPath,'startError.txt'),'w')
