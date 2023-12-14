@@ -213,7 +213,13 @@ class Win(QWidget,Ui_Form):
                         scheme.doMenuCommand("/define/boundary/mass-flow-outlet "+BoundaryName+' yes yes no '+str(BoundaryV)+' no')
                     elif BoundaryName.find('wall') != -1:
                         BoundaryT = self.boundary_TlineEdit.text().strip()
-                        scheme.doMenuCommand('/define/boundary/wall '+BoundaryName+' 0 no 0 no yes temperature no '+ BoundaryT)
+                        if float(BoundaryT) > 0:
+                            self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                            scheme.doMenuCommand('/define/boundary/wall '+BoundaryName+' 0 no 0 no yes temperature no '+ BoundaryT)
+                        else:
+                            self.boundary_TlineEdit.setText('')
+                            self.Reslut_label.setText('壁面温度不能小于0')
+                            return
                 #当outlet作为自由出口时
                 else:
                     if BoundaryName.find('inlet') != -1:
@@ -229,7 +235,13 @@ class Win(QWidget,Ui_Form):
                         scheme.doMenuCommand("/define/boundary/zone-type "+BoundaryName+" outflow")
                     elif BoundaryName.find('wall') != -1:
                         BoundaryT = self.boundary_TlineEdit.text().strip()
-                        scheme.doMenuCommand("/define/boundary/wall "+BoundaryName+' 0 no 0 no yes temperature no '+ BoundaryT)
+                        if float(BoundaryT) > 0:
+                            self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
+                            scheme.doMenuCommand("/define/boundary/wall "+BoundaryName+' 0 no 0 no yes temperature no '+ BoundaryT)
+                        else:
+                            self.boundary_TlineEdit.setText('')
+                            self.Reslut_label.setText('壁面温度不能小于0')
+                            return
                 
             except:
                 self.set_status_label.setText('设置错误！')
@@ -359,7 +371,7 @@ class Win(QWidget,Ui_Form):
         def RoomT_Input_click():
             RoomName = self.Room_select_box.currentText()+'.T'
             RoomT = float(self.Room_T_line.text())
-            if 278.15<= RoomT <=323.15:
+            if 278.15< RoomT < 323.15:
                 self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
                 if RoomName in dict_dymola_setName[1]:
                     dict_dymola_setValue[1][dict_dymola_setName[1].index(RoomName)] = RoomT
@@ -400,7 +412,7 @@ class Win(QWidget,Ui_Form):
             leakage = float(self.Door_leakage_line.text())
             cd = float(self.cd_line.text())
             m = float(self.m_line.text())
-            if 0 <= leakage <= 0.5 and 0 <= cd <= 1 and 0 <= m <= 1:
+            if 0 < leakage < 0.5 and 0 < cd < 1 and 0 < m < 1:
                 self.Reslut_label.setText('结果和错误在此处显示(目前无错误)')
                 if doorNameleakage in dict_dymola_setName[1]:
                     dict_dymola_setValue[1][dict_dymola_setName[1].index(doorNameleakage)] = leakage
